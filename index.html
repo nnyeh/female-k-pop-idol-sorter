@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency-systems-filled/48/sort-amount-up.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Female K-Pop Idol Sorter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://esm.sh/react-image-crop@11.0.6/dist/ReactCrop.css">
+    <style>
+      :root {
+          --mx: 50%;
+          --my: 50%;
+          --s: 1;
+          --o: 0;
+          --tx: 0px;
+          --ty: 0px;
+          --rx: 0deg;
+          --ry: 0deg;
+          --posx: 50%;
+          --posy: 50%;
+          --hyp: 0;
+          --stagger: 0s;
+      }
+
+      html {
+        /*
+          Scales the UI based on viewport width to maintain consistent proportions across monitors.
+          Reference: 16px font-size at 2560px width (0.625vw).
+          Clamped between 12px and 18px for readability.
+        */
+        font-size: clamp(12px, 0.625vw, 18px);
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10+ */
+        user-select: none; /* Standard syntax */
+      }
+      
+      .font-roboto-mono {
+        font-family: 'Roboto Mono', monospace;
+      }
+
+      .card {
+          --radius: 1rem;
+          --border-color: white; /* Default border color */
+          z-index: calc(var(--s) * 100);
+          transform: translate3d(0, 0, 0.1px);
+          will-change: transform, visibility;
+          transform-style: preserve-3d;
+      }
+
+      .card.interacting {
+          z-index: calc(var(--s) * 120);
+          animation: none;
+      }
+      
+      .card.interacting .card__shine {
+          animation: none;
+      }
+
+      .card.interacting .card__translater,
+      .card.interacting .card__rotator {
+          touch-action: none;
+      }
+
+      .card__translater,
+      .card__rotator {
+          display: grid;
+          perspective: 600px;
+          transform-origin: center;
+          will-change: transform;
+      }
+
+      .card__translater {
+          width: auto;
+          position: relative;
+          transform: translate3d(var(--tx), var(--ty), 0) scale(var(--s));
+          /* Smoother scaling transition */
+          transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .card__rotator {
+          transform: rotateY(var(--ry)) rotateX(var(--rx));
+          transform-style: preserve-3d;
+          border-radius: var(--radius);
+          outline: none;
+          cursor: pointer;
+          box-shadow: 0 0 0 4px var(--border-color, white), 0 25px 50px -12px rgb(0 0 0 / 0.4);
+          /* Default transition (for hover-in) */
+          transition:
+              transform 0.15s ease-out,
+              box-shadow 0.3s ease-out;
+      }
+      
+      .card:not(.interacting) .card__rotator {
+          /* Mouse-out transition override with rebound effect (delay removed) */
+          transition:
+              transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.4s ease-out;
+      }
+
+      .card.interacting .card__rotator {
+          /* Specific hover shadow */
+          box-shadow: 0 0 0 4px var(--border-color, white), 0 25px 50px -12px rgb(0 0 0 / 0.4);
+      }
+
+      .card__rotator > * {
+          width: 100%;
+          display: grid;
+          grid-area: 1/1;
+          border-radius: var(--radius);
+          image-rendering: optimizeQuality;
+          transform-style: preserve-3d;
+      }
+      
+      .card__front,
+      .card__front * {
+          backface-visibility: hidden;
+      }
+            
+      .card__darken {
+          background-image: radial-gradient(
+              circle farthest-corner at var(--mx) var(--my),
+              rgba(0, 0, 0, 0) 0%,
+              rgba(0, 00, 0, 0.1) 100%
+          );
+          mix-blend-mode: overlay;
+          opacity: calc((var(--hyp) * 0.4) + 2);
+          border-radius: inherit;
+          z-index: 1;
+          transition: opacity 0.6s ease-out;
+      }
+      
+      .card:not(.interacting) .card__darken {
+          transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .card__shine {
+          --space: 6%;
+          --angle: 133deg;
+          --imgsize: 60% 30%;
+          --bg-pos-x: calc(15% + var(--posx) * 0.7);
+          --bg-pos-y: calc(15% + var(--posy) * 0.7);
+          background-image: url("https://res.cloudinary.com/simey/image/upload/Dev/PokemonCards/vmaxbg.webp"),
+              repeating-linear-gradient(
+                  -33deg,
+                  rgb(206, 42, 36) calc(var(--space) * 1),
+                  rgb(157, 170, 223) calc(var(--space) * 2),
+                  rgb(45, 153, 146) calc(var(--space) * 3),
+                  rgb(29, 151, 36) calc(var(--space) * 4),
+                  rgb(181, 64, 228) calc(var(--space) * 5),
+                  rgb(206, 42, 36) calc(var(--space) * 6)
+              ),
+              repeating-linear-gradient(
+                  var(--angle),
+                  rgba(14, 21, 46, 0.5) 0%,
+                  hsl(180, 10%, 50%) 2.5%,
+                  hsl(83, 50%, 35%) 5%,
+                  hsl(180, 10%, 50%) 7.5%,
+                  rgba(14, 21, 46, 0.5) 10%,
+                  rgba(14, 21, 46, 0.5) 15%
+              ),
+              radial-gradient(
+                  farthest-corner circle at var(--mx) var(--my),
+                  rgba(6, 218, 255, 0.6) 0%,
+                  rgba(38, 235, 127, 0.6) 25%,
+                  rgba(155, 78, 228, 0.6) 50%,
+                  rgba(228, 78, 90, 0.6) 75%
+              );
+
+          background-blend-mode: color-burn, screen, soft-light;
+          background-size: var(--imgsize), 1200% 1200%, 800% 800%, 400% 400%;
+          background-position: center, 0% var(--bg-pos-y), var(--bg-pos-x) var(--bg-pos-y), var(--bg-pos-x) var(--bg-pos-y);
+          filter: brightness(calc((var(--hyp) * 0.5) + 0.6));
+          mix-blend-mode: color-dodge;
+          opacity: calc((var(--hyp) * 0.2) + 0.07);
+          border-radius: inherit;
+          overflow: hidden;
+          transition: opacity 0.2s ease-out, filter 0.2s ease-out;
+      }
+
+      .card:not(.interacting) .card__shine {
+        /* When not hovering, add transition for smooth rebound */
+        transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  filter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  background-position 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      
+      @keyframes card-enter {
+          from {
+              opacity: 0;
+              transform: scale(0.9);
+          }
+          to {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+          }
+      }
+      .animate-card-enter {
+          animation: card-enter 1s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+      }
+      
+      @keyframes card-exit-winner {
+          0% {
+              transform: scale(1);
+              opacity: 1;
+          }
+          40% {
+              transform: scale(1.05); /* Pop out more */
+              opacity: 0.5;
+          }
+          100% {
+              transform: scale(1); /* Settle slightly before disappearing */
+              opacity: 0;
+          }
+      }
+      .animate-card-exit-winner {
+          animation: card-exit-winner 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      
+      @keyframes card-exit-loser {
+          to {
+              transform: scale(0.9);
+              opacity: 0;
+              filter: grayscale(1);
+          }
+      }
+      .animate-card-exit-loser {
+          animation: card-exit-loser 0.4s ease-in forwards;
+      }
+      
+      @keyframes card-exit-tie {
+          to {
+              transform: scale(0.95);
+              opacity: 0;
+          }
+      }
+      .animate-card-exit-tie {
+          animation: card-exit-tie 0.3s ease-in forwards;
+      }
+
+      @keyframes card-exit-undo {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+      }
+      .animate-card-exit-undo {
+        animation: card-exit-undo 0.3s ease-out forwards;
+      }
+
+      @keyframes restart-exit {
+          to {
+              opacity: 0;
+              transform: scale(0.95);
+          }
+      }
+      .animate-restart-exit {
+          animation: restart-exit 0.3s ease-in forwards;
+      }
+
+      @keyframes idle-bob {
+        0%, 100% { transform: translate3d(0, -4px, 2px); }
+        50% { transform: translate3d(0, 4px, 2px); }
+      }
+      .card.idle-animating {
+        animation: idle-bob 4s ease-in-out infinite;
+        animation-delay: var(--stagger, 0.5s);
+      }
+      
+      @keyframes number-enter {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-number-enter {
+        animation: number-enter 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+
+      @keyframes number-exit {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      .animate-number-exit {
+        animation: number-exit 0.3s ease-in forwards;
+      }
+
+      .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none; /* Safari and Chrome */
+      }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.10.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "react-image-crop": "https://esm.sh/react-image-crop@11.0.6",
+    "react-image-crop/": "https://esm.sh/react-image-crop@11.0.6/",
+    "config": "./config.ts"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-white text-slate-800">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Female K-Pop Idol Sorter",
+  "description": "A clean and minimalistic web app to rank your favorite female K-pop idols. Uses a merge-sort algorithm for pairwise comparisons, supports ties, allows undoing choices, and saves progress.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
