@@ -1,6 +1,7 @@
 # Female K-Pop Idol Sorter
 
 A web application designed for ranking female K-pop idols through a series of pairwise comparisons. The app uses a merge-sort based algorithm to generate a personalized, sorted list based on user preferences.
+[Try it yourself!](https://female-k-pop-idol-sorter-966059601093.us-west1.run.app)
 
 ## About the Development Process
 
